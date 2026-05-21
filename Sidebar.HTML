@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body { font-family: 'Segoe UI', sans-serif; padding: 12px; background-color: #ffffff; color: #3c4043; }
+      
+      .header { 
+        background-color: #4285f4; 
+        color: white; 
+        padding: 20px; 
+        margin: 0 0 25px 0; 
+        font-weight: 600; 
+        text-align: center; 
+        border-radius: 15px; 
+        font-size: 16px;
+        box-shadow: 0 4px 10px rgba(66, 133, 244, 0.25);
+      }
+      
+      .input-group { margin-bottom: 22px; }
+      label { display: block; margin-bottom: 8px; font-size: 11px; color: #5f6368; text-transform: uppercase; letter-spacing: 0.8px; font-weight: bold; }
+      
+      input { 
+        width: 100%; 
+        padding: 12px; 
+        box-sizing: border-box; 
+        border: 1px solid #dadce0; 
+        border-radius: 8px; 
+        font-size: 13px;
+        background-color: #f8f9fa;
+        transition: all 0.2s;
+      }
+      
+      input:focus { border: 2px solid #4285f4; outline: none; background-color: #fff; padding: 11px; }
+      
+      .btn { 
+        background-color: #28a745; 
+        color: white; 
+        border: none; 
+        padding: 15px; 
+        width: 100%; 
+        border-radius: 10px; 
+        cursor: pointer; 
+        font-weight: bold; 
+        margin-top: 10px; 
+        font-size: 14px;
+        transition: background 0.2s, transform 0.1s;
+      }
+      .btn:hover { background-color: #218838; }
+      .btn:active { transform: scale(0.98); }
+      .btn:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+      
+      .status { font-size: 12px; margin-top: 20px; text-align: center; color: #1e8e3e; font-weight: 600; }
+
+      /* Maroon Warning Message Style */
+      .warning-box {
+        display: none; /* Hidden by default */
+        background-color: #800000; /* Maroon */
+        color: white;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 11px;
+        line-height: 1.4;
+        text-align: center;
+        margin-top: 15px;
+        font-weight: bold;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">Dista Query Generator</div>
+    
+    <div class="input-group">
+      <label>BigQuery Table Name</label>
+      <input type="text" id="tableName" placeholder="project.dataset.table">
+    </div>
+    
+    <div class="input-group">
+      <label>Date Partition Limit</label>
+      <input type="date" id="dateLimit">
+    </div>
+    
+    <button class="btn" onclick="runGeneration()">GENERATE</button>
+    
+    <div id="status" class="status"></div>
+
+    <div id="warningBox" class="warning-box">
+      PLEASE VERIFY THE GENERATED QUERIES MANUALLY BEFORE EXECUTING THEM TO ENSURE THE ACCURACY. THIS WILL PREVENT INCORRECT DATA UPDATION IN THE DATABASE
+    </div>
+
+    <script>
+      function runGeneration() {
+        const btn = document.querySelector('.btn');
+        const status = document.getElementById('status');
+        const warning = document.getElementById('warningBox');
+        
+        const config = {
+          tableName: document.getElementById('tableName').value,
+          dateLimit: document.getElementById('dateLimit').value
+        };
+
+        if (!config.tableName || !config.dateLimit) {
+          alert('Please provide the Table Name and Date.');
+          return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = 'GENERATING...';
+        status.innerText = 'Analyzing data columns...';
+        warning.style.display = 'none'; // Hide warning while processing
+
+        google.script.run
+          .withSuccessHandler(function(msg) {
+            status.innerText = msg;
+            btn.disabled = false;
+            btn.innerText = 'GENERATE';
+            warning.style.display = 'block'; // Show maroon box upon success
+          })
+          .generateQueries(config);
+      }
+    </script>
+  </body>
+</html>
